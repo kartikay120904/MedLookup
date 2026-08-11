@@ -60,6 +60,8 @@ dependencies {
     // Activity / ViewModel
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.kotlinx.coroutines.android)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -74,6 +76,7 @@ dependencies {
 
     // Unit tests
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Android tests
     androidTestImplementation(libs.androidx.junit)
