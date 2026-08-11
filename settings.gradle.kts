@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MedLookup"
 include(":app")
+include(":app")

@@ -1,13 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.kartikay.medlookup"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
@@ -23,12 +22,18 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
+    buildFeatures {
+        compose = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -36,10 +41,46 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
+
     implementation(libs.androidx.appcompat)
+    // Core
+    implementation(libs.androidx.core.ktx)
     implementation(libs.material)
+
+    // Compose
+    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.composeBom.get()}")
+
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+
+    // Activity / ViewModel
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // Networking
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
+
+    // Offline cache
+    implementation(libs.androidx.datastore.preferences)
+
+    // Unit tests
     testImplementation(libs.junit)
+
+    // Android tests
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+
+    // Debug tools
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
