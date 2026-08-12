@@ -254,3 +254,29 @@ private fun MedicineRow(
         }
     }
 }
+@Composable
+internal fun SearchScreenContent(
+    state: SearchUiState,
+    onRetry: () -> Unit = {},
+    onMedicineClick: (Medicine) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "MedLookup",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        SearchContent(
+            state = state,
+            onRetry = onRetry,
+            onMedicineClick = onMedicineClick,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp)
+        )
+    }
+}
