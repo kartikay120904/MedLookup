@@ -6,10 +6,10 @@ import com.kartikay.medlookup.data.repository.MedicineRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
@@ -30,8 +30,8 @@ class SearchViewModel(
         observeSearchQuery()
     }
 
-    fun onQueryChanged(query: String) {
-        _query.value = query
+    fun onQueryChanged(newQuery: String) {
+        _query.value = newQuery
     }
 
     fun retry() {
@@ -46,25 +46,25 @@ class SearchViewModel(
                 .debounce(400L)
                 .map { it.trim() }
                 .distinctUntilChanged()
-                .collectLatest { query ->
+                .collectLatest { searchQuery ->
 
-                    if (query.isBlank()) {
+                    if (searchQuery.length < 2) {
                         lastQuery = ""
                         _uiState.value = SearchUiState.Initial
                     } else {
-                        performSearch(query)
+                        performSearch(searchQuery)
                     }
                 }
         }
     }
 
-    private fun performSearch(query: String) {
-        lastQuery = query
+    private fun performSearch(searchQuery: String) {
+        lastQuery = searchQuery
 
         viewModelScope.launch {
             _uiState.value = SearchUiState.Loading
 
-            repository.searchMedicines(query)
+            repository.searchMedicines(searchQuery)
                 .onSuccess { medicines ->
                     if (medicines.isEmpty()) {
                         _uiState.value = SearchUiState.Empty
