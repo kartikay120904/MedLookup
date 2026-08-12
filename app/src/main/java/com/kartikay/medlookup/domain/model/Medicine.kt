@@ -1,5 +1,8 @@
 package com.kartikay.medlookup.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Medicine(
     val id: String,
     val brandName: String,
@@ -7,7 +10,6 @@ data class Medicine(
     val manufacturer: String,
     val route: String,
     val productType: String,
-
     val purpose: String?,
     val indicationsAndUsage: String?,
     val dosageAndAdministration: String?,

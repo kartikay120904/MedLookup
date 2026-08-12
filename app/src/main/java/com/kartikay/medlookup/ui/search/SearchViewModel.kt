@@ -2,7 +2,8 @@ package com.kartikay.medlookup.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kartikay.medlookup.data.repository.MedicineRepository
+import com.kartikay.medlookup.data.repository.MedicineRepositoryContract
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +13,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 class SearchViewModel(
-    private val repository: MedicineRepository
+    private val repository: MedicineRepositoryContract
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
@@ -36,7 +38,9 @@ class SearchViewModel(
 
     fun retry() {
         if (lastQuery.isNotBlank()) {
-            performSearch(lastQuery)
+            viewModelScope.launch {
+                performSearch(lastQuery)
+            }
         }
     }
 
@@ -58,25 +62,28 @@ class SearchViewModel(
         }
     }
 
-    private fun performSearch(searchQuery: String) {
+    private suspend fun performSearch(
+        searchQuery: String
+    ) {
         lastQuery = searchQuery
 
-        viewModelScope.launch {
-            _uiState.value = SearchUiState.Loading
+        _uiState.value = SearchUiState.Loading
 
-            repository.searchMedicines(searchQuery)
-                .onSuccess { medicines ->
-                    if (medicines.isEmpty()) {
-                        _uiState.value = SearchUiState.Empty
-                    } else {
-                        _uiState.value = SearchUiState.Success(medicines)
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.value = SearchUiState.Error(
-                        error.message ?: "Something went wrong"
+        repository.searchMedicines(searchQuery)
+            .onSuccess { result ->
+                if (result.medicines.isEmpty()) {
+                    _uiState.value = SearchUiState.Empty
+                } else {
+                    _uiState.value = SearchUiState.Success(
+                        medicines = result.medicines,
+                        fromCache = result.fromCache
                     )
                 }
-        }
+            }
+            .onFailure { error ->
+                _uiState.value = SearchUiState.Error(
+                    error.message ?: "Something went wrong"
+                )
+            }
     }
 }

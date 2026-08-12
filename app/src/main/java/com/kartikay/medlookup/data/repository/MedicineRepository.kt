@@ -1,30 +1,33 @@
 package com.kartikay.medlookup.data.repository
 
+import com.kartikay.medlookup.data.local.MedicineCacheDataSource
 import com.kartikay.medlookup.data.remote.FdaApi
 import com.kartikay.medlookup.data.remote.toDomainOrNull
-import com.kartikay.medlookup.domain.model.Medicine
 import retrofit2.HttpException
 
 class MedicineRepository(
-    private val api: FdaApi
-) {
+    private val api: FdaApi,
+    private val cache: MedicineCacheDataSource
+) : MedicineRepositoryContract {
 
-    suspend fun searchMedicines(
+    override suspend fun searchMedicines(
         query: String
-    ): Result<List<Medicine>> {
+    ): Result<MedicineSearchResult> {
         return try {
             val searchQuery = "openfda.brand_name:${query}*"
-            println("FDA SEARCH QUERY: $searchQuery")
 
             val response = api.searchDrugs(
                 search = searchQuery
             )
 
-            println("FDA RESPONSE CODE: ${response.code()}")
-
             when {
                 response.code() == 404 -> {
-                    Result.success(emptyList())
+                    Result.success(
+                        MedicineSearchResult(
+                            medicines = emptyList(),
+                            fromCache = false
+                        )
+                    )
                 }
 
                 response.isSuccessful -> {
@@ -33,17 +36,35 @@ class MedicineRepository(
                         ?.mapNotNull { it.toDomainOrNull() }
                         ?: emptyList()
 
-                    Result.success(medicines)
+                    if (medicines.isNotEmpty()) {
+                        cache.save(query, medicines)
+                    }
+
+                    Result.success(
+                        MedicineSearchResult(
+                            medicines = medicines,
+                            fromCache = false
+                        )
+                    )
                 }
 
                 else -> {
-                    Result.failure(
-                        HttpException(response)
-                    )
+                    Result.failure(HttpException(response))
                 }
             }
         } catch (exception: Exception) {
-            Result.failure(exception)
+            val cached = cache.load(query)
+
+            if (cached != null) {
+                Result.success(
+                    MedicineSearchResult(
+                        medicines = cached,
+                        fromCache = true
+                    )
+                )
+            } else {
+                Result.failure(exception)
+            }
         }
     }
 }

@@ -9,7 +9,8 @@ sealed interface SearchUiState {
     data object Loading : SearchUiState
 
     data class Success(
-        val medicines: List<Medicine>
+        val medicines: List<Medicine>,
+        val fromCache: Boolean = false
     ) : SearchUiState
 
     data object Empty : SearchUiState

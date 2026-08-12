@@ -1,5 +1,5 @@
 package com.kartikay.medlookup
-
+import com.kartikay.medlookup.data.local.MedicineCache
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,7 +21,10 @@ import com.kartikay.medlookup.ui.search.SearchViewModelFactory
 class MainActivity : ComponentActivity() {
 
     private val repository by lazy {
-        MedicineRepository(NetworkModule.api)
+        MedicineRepository(
+            api = NetworkModule.api,
+            cache = MedicineCache(applicationContext)
+        )
     }
 
     private val viewModel by lazy {
